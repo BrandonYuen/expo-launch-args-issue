@@ -1,0 +1,6 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    arguments:
+      EXAMPLE_ARG: "test"
+- assertVisible: .*Welcome!.*
