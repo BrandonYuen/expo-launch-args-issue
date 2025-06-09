@@ -1,0 +1,12 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+    arguments:
+      EXAMPLE_ARG: "test"
+- tapOn: .*8081.*
+- tapOn: 'Continue'
+- swipe:
+    direction: DOWN
+    duration: 1000
+- assertVisible: .*Welcome!.*

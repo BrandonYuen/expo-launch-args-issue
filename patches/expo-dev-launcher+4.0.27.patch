@@ -1,0 +1,53 @@
+diff --git a/node_modules/expo-dev-launcher/android/src/debug/java/expo/modules/devlauncher/DevLauncherController.kt b/node_modules/expo-dev-launcher/android/src/debug/java/expo/modules/devlauncher/DevLauncherController.kt
+index 2d2a8d9..1d18a14 100644
+--- a/node_modules/expo-dev-launcher/android/src/debug/java/expo/modules/devlauncher/DevLauncherController.kt
++++ b/node_modules/expo-dev-launcher/android/src/debug/java/expo/modules/devlauncher/DevLauncherController.kt
+@@ -4,6 +4,7 @@ import android.app.Application
+ import android.content.Context
+ import android.content.Intent
+ import android.net.Uri
++import android.os.Bundle
+ import androidx.annotation.UiThread
+ import com.facebook.react.ReactActivity
+ import com.facebook.react.ReactActivityDelegate
+@@ -109,6 +110,7 @@ class DevLauncherController private constructor() :
+ 
+   @Suppress("unused")
+   private val networkInterceptor = DevLauncherNetworkInterceptor(this)
++  private var pendingIntentExtras: Bundle? = null
+ 
+   private fun isEASUpdateURL(url: Uri): Boolean {
+     return url.host.equals("u.expo.dev") || url.host.equals("staging-u.expo.dev")
+@@ -244,6 +246,7 @@ class DevLauncherController private constructor() :
+ 
+         coroutineScope.launch {
+           try {
++            pendingIntentRegistry.intent = intent
+             loadApp(uri, activityToBeInvalidated)
+           } catch (e: Throwable) {
+             DevLauncherErrorActivity.showFatalError(context, DevLauncherAppError(e.message, e))
+@@ -277,6 +280,8 @@ class DevLauncherController private constructor() :
+   }
+ 
+   private fun handleExternalIntent(intent: Intent): Boolean {
++    // Always store extras even if we don't set the pending intent
++    pendingIntentExtras = intent.extras
+     if (mode != Mode.APP && intent.action != Intent.ACTION_MAIN) {
+       pendingIntentRegistry.intent = intent
+     }
+@@ -354,7 +359,15 @@ class DevLauncherController private constructor() :
+           intent.categories?.let {
+             categories.addAll(it)
+           }
++        } ?: run {
++          // If no pending intent, still apply any stored extras
++          pendingIntentExtras?.let {
++            putExtras(it)
++          }
+         }
++
++        // Clear the stored extras after using them
++        pendingIntentExtras = null
+     }
+ 
+   private fun createBasicAppIntent() =
